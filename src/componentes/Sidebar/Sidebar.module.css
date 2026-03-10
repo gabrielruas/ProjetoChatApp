@@ -1,0 +1,13 @@
+.sidebar_conteudo{
+background-color: #070b3b;
+
+position: fixed;
+top: 0;
+bottom: 0;
+
+width: 20%;
+height: 100%;
+}
+.pagina_conteudo {
+    margin-left: 20%;
+}
