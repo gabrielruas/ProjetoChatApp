@@ -1,4 +1,3 @@
-import { Children } from "react"
 import style from "./Sidebar.module.css"
 import Logo from "../../assets/LogoBranco.png"
 import { SidebarItem } from "../SidebarItem/SidebarItem"
