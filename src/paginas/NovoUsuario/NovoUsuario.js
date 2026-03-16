@@ -5,6 +5,7 @@ import style from "./NovoUsuario.modules.css";
 import UsuarioAPI from "../../service/usuarioAPI";
 import { useNavigate } from "react-router-dom";
 import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
 
 export function NovoUsuario() {
 
@@ -129,6 +130,11 @@ export function NovoUsuario() {
                             </Form.Control>
 
                         </Form.Group>
+                        <Button variant="primary" type="submit" disabled={!isFormValid()}>
+                            Salvar
+                        </Button>
+                           
+                        
 
                     </Form>
 
