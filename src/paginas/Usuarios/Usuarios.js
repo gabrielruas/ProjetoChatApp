@@ -6,17 +6,36 @@ import { Table } from "react-bootstrap";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useEffect, useState } from "react";
 import UsuarioAPI from "../../service/usuarioAPI";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
 export function Usuarios(){
-    // const usuarios = [
-    //     {
-    //         id:1,
-    //         nome: "Paulo Henrique",
-    //         email: "paulo.henrique@hotmail.com"
-    //     }
-    // ]
+   
     const [usuarios, setUsuarios] = useState([]);
+    const [mostrarModal, setMostrarModal] = useState(false);
+    const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
 
-    async function carregarUsuario() {
+    const handleClickDeletar = (usuario) => {
+        setUsuarioSelecionado(usuario);
+        setMostrarModal(true);
+    };
+    const handleDeletar = async () => {
+        try{
+            await UsuarioAPI.deletarAsync(usuarioSelecionado.id);
+            setUsuarios(usuarios.filter(u => u.id !== usuarioSelecionado.id));
+        } catch (error) {
+            console.error("Erro ao deletar usuario:",error);
+        } finally {
+            handleFecharModal()
+        }
+    }
+    const handleFecharModal = () => {
+        setMostrarModal(false);
+        setUsuarioSelecionado(null);
+    }
+
+
+
+    async function carregarUsuarios() {
         try {
             const listaUsuarios = await UsuarioAPI.listarAsync(true);
             setUsuarios(listaUsuarios);
@@ -26,7 +45,7 @@ export function Usuarios(){
     }
     
     useEffect(() => {
-        carregarUsuario();
+        carregarUsuarios();
     }, []);
     return(
             <Sidebar>
@@ -47,17 +66,17 @@ export function Usuarios(){
 
                         </thead>
                         <tbody className={style.tabela_corpo} >
-                            {usuarios.map((usuarios) => (
-                                <tr key={usuarios.id}>
-                                    <td> {usuarios.nome}</td>
-                                    <td> {usuarios.email}</td>
+                            {usuarios.map((usuario) => (
+                                <tr key={usuario.id}>
+                                    <td> {usuario.nome}</td>
+                                    <td> {usuario.email}</td>
                                     <td>
                                         <Link to='/usuario/editar' state={usuarios.id} className={style.botao_edit}>
                                             <MdEdit />
                                         </Link>
-                                        <Link to='/usuario/deletar' state={usuarios.id} className={style.botao_delete}>
+                                        <Button onClick={() => handleClickDeletar(usuario)} className={style.botao_delete}>
                                             <MdDelete />
-                                        </Link>
+                                        </Button>
                                     </td>
 
                                 </tr>
@@ -67,6 +86,25 @@ export function Usuarios(){
                         </Table>
 
                     </div>
+                    <Modal show={mostrarModal} onHide={handleFecharModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Confirmar</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        Tem certeza que deseja deletar o usuário {usuarioSelecionado?.nome}?
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleFecharModal}>
+                        Cancelar
+                        </Button>
+
+                        <Button variant="danger" onClick={handleDeletar}>
+                        Deletar
+                        </Button>
+                    </Modal.Footer>
+                    </Modal>
                    
                 </div> 
                 </Topbar> 

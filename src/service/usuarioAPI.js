@@ -61,7 +61,7 @@ const UsuarioAPI = {
     },
     async deletarAsync(usuarioId){
         try{
-            const response = await HTTPClient.delete(`/Usuario/Obter/${usuarioId}`);
+            const response = await HTTPClient.delete(`/Usuario/Deletar/${usuarioId}`);
             return response.data;
         } catch(error) {
             console.error("Erro ao deletar Usuario:", error );
