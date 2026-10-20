@@ -50,7 +50,9 @@ export function Atendimento() {
                 throw new Error("A API criou o atendimento, mas não retornou o idAtendimento.");
             }
 
-            navigate(`/mensagem/${idAtendimento}`);
+            navigate(`/mensagem/${idAtendimento}`, {
+                state: { nomeCliente: nome.trim() }
+            });
         } catch (error) {
             console.error("Erro ao criar atendimento:", error);
             const resposta = error.response?.data;

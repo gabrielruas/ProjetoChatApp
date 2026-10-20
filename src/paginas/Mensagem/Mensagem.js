@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../../componentes/Sidebar/Sidebar";
 import { Topbar } from "../../componentes/Topbar/Topbar";
 import MensagemAPI from "../../service/mensagemAPI";
@@ -9,7 +9,9 @@ import Button from "react-bootstrap/Button";
 
 export function Mensagem() {
     const { idAtendimento } = useParams();
-    const [remetente, setRemetente] = useState("");
+    const { state } = useLocation();
+    const nomeCliente = state?.nomeCliente ?? "";
+    const [remetente] = useState(nomeCliente);
     const [texto, setTexto] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [erro, setErro] = useState("");
@@ -20,7 +22,7 @@ export function Mensagem() {
         if (enviando) return;
 
         if (!remetente.trim() || !texto.trim()) {
-            setErro("Informe seu nome e escreva uma mensagem.");
+            setErro("O nome do atendimento não foi recebido ou a mensagem está vazia. Volte e tente novamente.");
             return;
         }
 
@@ -57,9 +59,9 @@ export function Mensagem() {
                             <Form.Label>Nome</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Digite seu nome"
+                                placeholder="Nome informado no atendimento"
                                 value={remetente}
-                                onChange={(event) => setRemetente(event.target.value)}
+                                readOnly
                                 required
                             />
                         </Form.Group>
