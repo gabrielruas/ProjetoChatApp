@@ -32,13 +32,25 @@ export function Atendimento() {
         setErro("");
 
         try {
-            await AtendimentoAPI.criarAsync(
+            const atendimentoCriado = await AtendimentoAPI.criarAsync(
                 nome.trim(),
                 email.trim(),
                 celular.trim(),
                 assunto.trim()
             );
-            navigate("/mensagem");
+            const idAtendimento =
+                atendimentoCriado?.idAtendimento ??
+                atendimentoCriado?.IdAtendimento ??
+                atendimentoCriado?.atendimentoID ??
+                atendimentoCriado?.atendimentoId ??
+                atendimentoCriado?.id ??
+                atendimentoCriado?.Id;
+
+            if (idAtendimento == null) {
+                throw new Error("A API criou o atendimento, mas não retornou o idAtendimento.");
+            }
+
+            navigate(`/mensagem/${idAtendimento}`);
         } catch (error) {
             console.error("Erro ao criar atendimento:", error);
             const resposta = error.response?.data;

@@ -14,7 +14,7 @@ function App() {
         <Route path='/' element={<Home />}/>
         <Route path='/usuarios' element={<Usuarios />}/>
         <Route path='/atendimento' element={<Atendimento />}/>
-        <Route path='/mensagem' element={<Mensagem />}/>
+        <Route path='/mensagem/:idAtendimento' element={<Mensagem />}/>
         <Route path='/usuario/novo' element={<NovoUsuario />}/>
         <Route path='/usuario/editar' element={<EditarUsuario />}/>
     </Routes>
