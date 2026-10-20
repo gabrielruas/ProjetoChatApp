@@ -24,6 +24,17 @@ const AtendimentoAPI = {
             throw error;
         }
     },
+    async listarPorStatusAsync(status) {
+        try {
+            const response = await HTTPClient.get(
+                `/Atendimento/ListarPorStatus?status=${encodeURIComponent(status)}`
+            );
+            return response.data;
+        } catch(error) {
+            console.error("Erro ao listar atendimentos por status:", error);
+            throw error;
+        }
+    },
     async criarAsync(nomeCliente, emailCliente, celular, assunto) {
         try {
             const atendimentoCriar = {
