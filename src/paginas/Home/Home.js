@@ -1,16 +1,28 @@
 import { Sidebar } from "../../componentes/Sidebar/Sidebar";
 import { Topbar } from "../../componentes/Topbar/Topbar";
+import Button from "react-bootstrap/Button";
 import style from "./Home.module.css";
+import { useNavigate } from "react-router-dom";
 export function Home(){
+
+    const navigate = useNavigate();
+    function abrirLogin(){
+        navigate("/usuarios");
+    }
     return(
         <div className={style.conteudo}>
-            <Sidebar>
-                <Topbar>
+            {/* <Sidebar>
+                <Topbar> */}
                 <div className={style.pagina_conteudo}>
-                    <h3>Home</h3>
+                    <Button 
+                        className={style.button_entrar}
+                        onClick={abrirLogin}
+                    >
+                        Entrar
+                    </Button>
                 </div> 
-                </Topbar> 
-            </Sidebar>
+                {/* </Topbar> 
+            </Sidebar> */}
         </div>
     )
 }
