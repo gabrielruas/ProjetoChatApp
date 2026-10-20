@@ -1,147 +1,125 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Sidebar } from "../../componentes/Sidebar/Sidebar";
 import { Topbar } from "../../componentes/Topbar/Topbar";
 import "./Atendimento.css";
-import UsuarioAPI from "../../service/usuarioAPI";
+import AtendimentoAPI from "../../service/atendimentoAPI";
 import { useNavigate } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 
 export function Atendimento() {
-
-    const [nome, setNome] = useState('');
-    const [email, setEmail] = useState('');
-    const [senha, setSenha] = useState('');
-    const [tipoUsuario, setTipoUsuario] = useState('');
-    const [TiposUsuarios, setTiposUsuarios] = useState([]);
-
+    const [nome, setNome] = useState("");
+    const [email, setEmail] = useState("");
+    const [celular, setCelular] = useState("");
+    const [assunto, setAssunto] = useState("");
+    const [enviando, setEnviando] = useState(false);
+    const [erro, setErro] = useState("");
     const navigate = useNavigate();
 
-    useEffect(() => {
+    const isFormValid = () =>
+        Boolean(nome.trim() && email.trim() && celular.trim() && assunto.trim());
 
-        const fetchTiposUsuarios = async () => {
-            try {
-                const tipos = await UsuarioAPI.listarTiposUsuarioAsync();
-                setTiposUsuarios(tipos);
-            } catch (error) {
-                console.error('Erro ao buscar tipos de usuario:', error);
-            }
-        };
-    
-        fetchTiposUsuarios();
-    
-    }, []);
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-    
-        if (isFormValid()) {
-            try {
-    
-                await UsuarioAPI.criarAsync(nome, email, senha, tipoUsuario);
-    
-                navigate('/usuarios');
-    
-            } catch (error) {
-                console.error("Erro ao criar usuário:", error);
-            }
-    
-        } else {
-            alert('Por favor, preencha todos os campos');
+        if (enviando) return;
+        if (!isFormValid()) {
+            setErro("Preencha todos os campos antes de enviar.");
+            return;
         }
-    };
 
-    const isFormValid = () => {
-        return nome && email && senha && tipoUsuario;
+        setEnviando(true);
+        setErro("");
+
+        try {
+            await AtendimentoAPI.criarAsync(
+                nome.trim(),
+                email.trim(),
+                celular.trim(),
+                assunto.trim()
+            );
+            navigate("/usuarios");
+        } catch (error) {
+            console.error("Erro ao criar atendimento:", error);
+            const resposta = error.response?.data;
+            const errosValidacao = resposta?.errors
+                ? Object.entries(resposta.errors)
+                    .map(([campo, mensagens]) => `${campo}: ${mensagens.join(", ")}`)
+                    .join("; ")
+                : "";
+            const detalhe =
+                errosValidacao ||
+                resposta?.message ||
+                resposta?.title ||
+                (resposta ? JSON.stringify(resposta) : error.message);
+            const status = error.response?.status;
+            setErro(
+                `Não foi possível enviar o atendimento${status ? ` (HTTP ${status})` : ""}: ${detalhe}`
+            );
+        } finally {
+            setEnviando(false);
+        }
     };
 
     return (
         <div className="conteudo">
-
             <Sidebar>
-
                 <Topbar />
-
                 <div className="pagina_conteudo">
-
                     <h3>Novo Atendimento</h3>
-
                     <Form onSubmit={handleSubmit}>
-
                         <Form.Group controlId="formNome" className="mb-3">
-
                             <Form.Label>Nome</Form.Label>
-
                             <Form.Control
                                 type="text"
                                 placeholder="Digite seu nome"
                                 value={nome}
-                                onChange={(e) => setNome(e.target.value)}
+                                onChange={(event) => setNome(event.target.value)}
                                 required
                             />
-
                         </Form.Group>
 
                         <Form.Group controlId="formEmail" className="mb-3">
-
                             <Form.Label>Email</Form.Label>
-
                             <Form.Control
                                 type="email"
                                 placeholder="Digite seu email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(event) => setEmail(event.target.value)}
                                 required
                             />
-
                         </Form.Group>
 
-                        <Form.Group controlId="formSenha" className="mb-3">
-
-                            <Form.Label>Senha</Form.Label>
-
+                        <Form.Group controlId="formCelular" className="mb-3">
+                            <Form.Label>Celular</Form.Label>
                             <Form.Control
-                                type="password"
-                                placeholder="********"
-                                value={senha}
-                                onChange={(e) => setSenha(e.target.value)}
+                                type="text"
+                                placeholder="Digite seu celular"
+                                value={celular}
+                                onChange={(event) => setCelular(event.target.value)}
                                 required
                             />
-
                         </Form.Group>
-                        <Form.Group controlId="formTipoUsuario" className="mb-3">
 
-                            <Form.Label>Tipo de Usuario</Form.Label>
-
+                        <Form.Group controlId="formAssunto" className="mb-3">
+                            <Form.Label>Assunto</Form.Label>
                             <Form.Control
-                                as="select"
-                                name={tipoUsuario}
-                                value={tipoUsuario}
-                                onChange={(e) => setTipoUsuario(e.target.value)}
+                                as="textarea"
+                                rows={3}
+                                placeholder="Descreva o assunto do atendimento"
+                                value={assunto}
+                                onChange={(event) => setAssunto(event.target.value)}
                                 required
-                                
-                            >
-                                <option value=""> Select o tipo de usuario </option>
-                                {TiposUsuarios.map((tipo) => (
-                                    <option key={tipo.id} value={tipo.id}>
-                                        {tipo.nome}
-                                    </option>
-                                ))}
-                            </Form.Control>
-
+                            />
                         </Form.Group>
-                        <Button variant="primary" type="submit" disabled={!isFormValid()}>
-                            Salvar
+
+                        {erro && <p role="alert" className="text-danger">{erro}</p>}
+                        <Button variant="primary" type="submit" disabled={enviando}>
+                            {enviando ? "Enviando..." : "Salvar"}
                         </Button>
-                           
-                        
-
                     </Form>
-
                 </div>
-
             </Sidebar>
-
         </div>
     );
 }
