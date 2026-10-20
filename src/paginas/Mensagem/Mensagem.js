@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { Sidebar } from "../../componentes/Sidebar/Sidebar";
 import { Topbar } from "../../componentes/Topbar/Topbar";
 import MensagemAPI from "../../service/mensagemAPI";
@@ -15,7 +15,40 @@ export function Mensagem() {
     const [texto, setTexto] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [erro, setErro] = useState("");
-    const navigate = useNavigate();
+    const [mensagens, setMensagens] = useState([]);
+    const [carregandoMensagens, setCarregandoMensagens] = useState(true);
+    const [erroLista, setErroLista] = useState("");
+    useEffect(() => {
+        let ativo = true;
+
+        const carregarMensagens = async () => {
+            setCarregandoMensagens(true);
+            setErroLista("");
+
+            try {
+                const resposta = await MensagemAPI.listarPorAtendimentoAsync(idAtendimento);
+                const lista = Array.isArray(resposta)
+                    ? resposta
+                    : resposta?.mensagens ?? resposta?.Mensagens ?? resposta?.data ?? [];
+
+                if (ativo) {
+                    setMensagens(Array.isArray(lista) ? lista : []);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar mensagens:", error);
+                if (ativo) {
+                    setErroLista("Não foi possível carregar as mensagens deste atendimento.");
+                }
+            } finally {
+                if (ativo) setCarregandoMensagens(false);
+            }
+        };
+
+        carregarMensagens();
+        return () => {
+            ativo = false;
+        };
+    }, [idAtendimento]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -31,7 +64,18 @@ export function Mensagem() {
 
         try {
             await MensagemAPI.criarAsync(idAtendimento, remetente.trim(), texto.trim());
-            navigate("/usuarios");
+            setTexto("");
+            try {
+                const resposta = await MensagemAPI.listarPorAtendimentoAsync(idAtendimento);
+                const lista = Array.isArray(resposta)
+                    ? resposta
+                    : resposta?.mensagens ?? resposta?.Mensagens ?? resposta?.data ?? [];
+                setMensagens(Array.isArray(lista) ? lista : []);
+                setErroLista("");
+            } catch (error) {
+                console.error("Mensagem enviada, mas não foi possível atualizar o histórico:", error);
+                setErroLista("A mensagem foi enviada, mas não foi possível atualizar o histórico.");
+            }
         } catch (error) {
             console.error("Erro ao criar mensagem:", error);
             const resposta = error.response?.data;
@@ -54,6 +98,20 @@ export function Mensagem() {
                 <Topbar />
                 <div className="pagina_conteudo">
                     <h3>Mensagem do atendimento #{idAtendimento}</h3>
+                    <section aria-label="Mensagens do atendimento" className="mb-4">
+                        <h4>Histórico</h4>
+                        {carregandoMensagens && <p>Carregando mensagens...</p>}
+                        {erroLista && <p role="alert" className="text-danger">{erroLista}</p>}
+                        {!carregandoMensagens && !erroLista && mensagens.length === 0 && (
+                            <p>Ainda não há mensagens neste atendimento.</p>
+                        )}
+                        {mensagens.map((mensagem, index) => (
+                            <article key={mensagem.id ?? mensagem.Id ?? index} className="mb-3">
+                                <strong>{mensagem.remetente ?? mensagem.Remetente ?? ""}</strong>
+                                <p>{mensagem.texto ?? mensagem.Texto ?? mensagem.mensagem ?? mensagem.Mensagem ?? ""}</p>
+                            </article>
+                        ))}
+                    </section>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group controlId="formRemetente" className="mb-3">
                             <Form.Label>Nome</Form.Label>

@@ -24,6 +24,17 @@ const MensagemAPI = {
             throw error;
         }
     },
+    async listarPorAtendimentoAsync(idAtendimento) {
+        try {
+            const response = await HTTPClient.get(
+                `/Mensagem/ListarPorAtendimento/${idAtendimento}`
+            );
+            return response.data;
+        } catch(error) {
+            console.error("Erro ao listar mensagens do atendimento:", error);
+            throw error;
+        }
+    },
     async criarAsync(atendimentoID, remetente, texto) {
         try {
             const mensagemCriar = {
