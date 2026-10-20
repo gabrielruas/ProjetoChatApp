@@ -20,7 +20,7 @@ export function Home(){
                         className={style.button_entrar}
                         onClick={abrirLogin}
                     >
-                        Entrarteste
+                        Entrar
                     </Button>
                     <Button 
                         className={style.button_atendimento}

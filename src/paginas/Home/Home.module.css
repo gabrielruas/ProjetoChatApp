@@ -1,52 +1,64 @@
+
 .pagina_conteudo {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
-    height: 100vh; /* ESSENCIAL */
+
+    height: 100vh;
     gap: 20px;
 
-    /* IMAGEM DE FUNDO */
     background-image: url("../../assets/Login-1.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
-/* Botão */
-.button_entrar {
-    width: 90%;
-    max-width: 550px; /* deixa comprido */
-    background-color: orange !important;
-    border: none !important;
-    color: white;
-    padding: 15px;
-    font-size: 18px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-/* Botão */
+.button_entrar,
 .button_atendimento {
+    position: relative;
+    top: -120px;
+
     width: 90%;
-    max-width: 550px; /* deixa comprido */
-    background-color: orange !important;
-    border: none !important;
-    color: white;
+    max-width: 550px;
     padding: 15px;
-    font-size: 18px;
+
+    border: none;
     border-radius: 10px;
+
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+
     cursor: pointer;
-    transition: 0.3s;
+    background: linear-gradient(135deg, #0066ff, #5533ff);
+
+    transition: box-shadow 0.3s ease,
+                transform 0.3s ease;
 }
 
-/* Hover */
-.button_entrar:hover {
-    background-color: darkorange !important;
+.button_entrar:hover,
+.button_atendimento:hover {
+    background: linear-gradient(135deg, #00b8ff, #0066ff);
+    box-shadow: 0 5px 18px rgba(0, 102, 255, 0.3);
+    transform: translateY(-2px);
 }
 
-/* Clique */
-.button_entrar:active {
+.button_entrar:active,
+.button_atendimento:active {
     transform: scale(0.98);
+}
+
+.button_entrar:focus-visible,
+.button_atendimento:focus-visible {
+    outline: 3px solid #00d4ff;
+    outline-offset: 3px;
+}
+
+.button_entrar:disabled,
+.button_atendimento:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
