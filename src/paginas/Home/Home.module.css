@@ -27,6 +27,19 @@
     cursor: pointer;
     transition: 0.3s;
 }
+/* Botão */
+.button_atendimento {
+    width: 90%;
+    max-width: 550px; /* deixa comprido */
+    background-color: orange !important;
+    border: none !important;
+    color: white;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
 /* Hover */
 .button_entrar:hover {

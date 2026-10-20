@@ -8,6 +8,8 @@ export function Home(){
     const navigate = useNavigate();
     function abrirLogin(){
         navigate("/usuarios");
+    }function abrirAtendimento(){
+        navigate("/atendimento");
     }
     return(
         <div className={style.conteudo}>
@@ -18,9 +20,16 @@ export function Home(){
                         className={style.button_entrar}
                         onClick={abrirLogin}
                     >
-                        Entrar
+                        Entrarteste
+                    </Button>
+                    <Button 
+                        className={style.button_atendimento}
+                        onClick={abrirAtendimento}
+                    >
+                        Atendimento
                     </Button>
                 </div> 
+                 
                 {/* </Topbar> 
             </Sidebar> */}
         </div>
