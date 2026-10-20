@@ -38,7 +38,7 @@ export function Atendimento() {
                 celular.trim(),
                 assunto.trim()
             );
-            navigate("/usuarios");
+            navigate("/mensagem");
         } catch (error) {
             console.error("Erro ao criar atendimento:", error);
             const resposta = error.response?.data;
