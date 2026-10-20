@@ -7,11 +7,24 @@ import "./Mensagem.css";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 
+const obterListaMensagens = (resposta) => {
+    if (Array.isArray(resposta)) return resposta;
+    return resposta?.mensagens ?? resposta?.Mensagens ?? resposta?.data ?? [];
+};
+
+const ordenarPorData = (lista) => [...lista].sort((a, b) => {
+    const dataA = a.dataEnvio ?? a.DataEnvio ?? a.dataCriacao ?? a.DataCriacao ?? a.createdAt ?? a.CreatedAt;
+    const dataB = b.dataEnvio ?? b.DataEnvio ?? b.dataCriacao ?? b.DataCriacao ?? b.createdAt ?? b.CreatedAt;
+    if (!dataA || !dataB) return 0;
+    return new Date(dataA).getTime() - new Date(dataB).getTime();
+});
+
 export function Mensagem() {
     const { idAtendimento } = useParams();
     const { state } = useLocation();
     const nomeCliente = state?.nomeCliente ?? "";
-    const [remetente] = useState(nomeCliente);
+    const tipoRemetente = state?.tipoRemetente ?? "cliente";
+    const remetente = tipoRemetente === "atendente" ? "Atendente" : nomeCliente;
     const [texto, setTexto] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [erro, setErro] = useState("");
@@ -27,12 +40,10 @@ export function Mensagem() {
 
             try {
                 const resposta = await MensagemAPI.listarPorAtendimentoAsync(idAtendimento);
-                const lista = Array.isArray(resposta)
-                    ? resposta
-                    : resposta?.mensagens ?? resposta?.Mensagens ?? resposta?.data ?? [];
+                const lista = obterListaMensagens(resposta);
 
                 if (ativo) {
-                    setMensagens(Array.isArray(lista) ? lista : []);
+                    setMensagens(Array.isArray(lista) ? ordenarPorData(lista) : []);
                 }
             } catch (error) {
                 console.error("Erro ao carregar mensagens:", error);
@@ -67,10 +78,8 @@ export function Mensagem() {
             setTexto("");
             try {
                 const resposta = await MensagemAPI.listarPorAtendimentoAsync(idAtendimento);
-                const lista = Array.isArray(resposta)
-                    ? resposta
-                    : resposta?.mensagens ?? resposta?.Mensagens ?? resposta?.data ?? [];
-                setMensagens(Array.isArray(lista) ? lista : []);
+                const lista = obterListaMensagens(resposta);
+                setMensagens(Array.isArray(lista) ? ordenarPorData(lista) : []);
                 setErroLista("");
             } catch (error) {
                 console.error("Mensagem enviada, mas não foi possível atualizar o histórico:", error);
@@ -105,19 +114,37 @@ export function Mensagem() {
                         {!carregandoMensagens && !erroLista && mensagens.length === 0 && (
                             <p>Ainda não há mensagens neste atendimento.</p>
                         )}
-                        {mensagens.map((mensagem, index) => (
-                            <article key={mensagem.id ?? mensagem.Id ?? index} className="mb-3">
-                                <strong>{mensagem.remetente ?? mensagem.Remetente ?? ""}</strong>
-                                <p>{mensagem.texto ?? mensagem.Texto ?? mensagem.mensagem ?? mensagem.Mensagem ?? ""}</p>
-                            </article>
-                        ))}
+                        <div className="historico_mensagens">
+                            {mensagens.map((mensagem, index) => {
+                                const remetenteMensagem = mensagem.remetente ?? mensagem.Remetente ?? "";
+                                const papel = (
+                                    mensagem.tipoRemetente ??
+                                    mensagem.TipoRemetente ??
+                                    mensagem.autorTipo ??
+                                    mensagem.AutorTipo ??
+                                    ""
+                                ).toString().toLocaleLowerCase();
+                                const ehCliente = papel
+                                    ? papel.includes("cliente") || papel.includes("usuario") || papel.includes("usuário")
+                                    : remetenteMensagem.trim().toLocaleLowerCase() === nomeCliente.trim().toLocaleLowerCase();
+                                return (
+                                    <article
+                                        key={mensagem.idMensagem ?? mensagem.IdMensagem ?? mensagem.id ?? mensagem.Id ?? index}
+                                        className={`mensagem_bolha ${ehCliente ? "mensagem_cliente" : "mensagem_atendente"}`}
+                                    >
+                                        <strong>{remetenteMensagem || (ehCliente ? nomeCliente : "Atendente")}</strong>
+                                        <p>{mensagem.texto ?? mensagem.Texto ?? mensagem.mensagem ?? mensagem.Mensagem ?? ""}</p>
+                                    </article>
+                                );
+                            })}
+                        </div>
                     </section>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group controlId="formRemetente" className="mb-3">
                             <Form.Label>Nome</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Nome informado no atendimento"
+                                placeholder={tipoRemetente === "atendente" ? "Atendente" : "Nome informado no atendimento"}
                                 value={remetente}
                                 readOnly
                                 required

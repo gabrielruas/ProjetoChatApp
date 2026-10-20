@@ -51,7 +51,7 @@ export function Atendimento() {
             }
 
             navigate(`/mensagem/${idAtendimento}`, {
-                state: { nomeCliente: nome.trim() }
+                state: { nomeCliente: nome.trim(), tipoRemetente: "cliente" }
             });
         } catch (error) {
             console.error("Erro ao criar atendimento:", error);

@@ -71,7 +71,9 @@ export function Usuarios(){
             return;
         }
 
-        navigate(`/mensagem/${idAtendimento}`, { state: { nomeCliente } });
+        navigate(`/mensagem/${idAtendimento}`, {
+            state: { nomeCliente, tipoRemetente: "atendente" }
+        });
     };
     
     useEffect(() => {
