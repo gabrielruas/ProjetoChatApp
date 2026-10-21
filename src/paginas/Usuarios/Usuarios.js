@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "../../componentes/Sidebar/Sidebar";
 import { Topbar } from "../../componentes/Topbar/Topbar";
 import style from "./Usuarios.module.css";
@@ -17,6 +17,8 @@ export function Usuarios(){
     const [mostrarModal, setMostrarModal] = useState(false);
     const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
     const navigate = useNavigate();
+    const { state } = useLocation();
+    const nomeAtendente = state?.nomeAtendente || sessionStorage.getItem("nomeAtendente") || "Atendente";
 
     const handleClickDeletar = (usuario) => {
         setUsuarioSelecionado(usuario);
@@ -72,7 +74,7 @@ export function Usuarios(){
         }
 
         navigate(`/mensagem/${idAtendimento}`, {
-            state: { nomeCliente, tipoRemetente: "atendente" }
+            state: { nomeCliente, nomeAtendente, tipoRemetente: "atendente" }
         });
     };
     
@@ -85,7 +87,10 @@ export function Usuarios(){
                 <Topbar>
                 <div className={style.pagina_conteudo}>
                     <div className={style.pagina_cabecalho}>
-                        <h3>Usuarios</h3>
+                        <div>
+                            <h3>Usuários</h3>
+                            <p>Bem-vindo(a), {nomeAtendente}!</p>
+                        </div>
                         <Link to='/usuario/novo' className={style.botao_novo}> +Novo</Link>
                     </div>
                     <section className="mb-4">

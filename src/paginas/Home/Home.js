@@ -7,7 +7,7 @@ export function Home(){
 
     const navigate = useNavigate();
     function abrirLogin(){
-        navigate("/usuarios");
+        navigate("/login");
     }function abrirAtendimento(){
         navigate("/atendimento");
     }

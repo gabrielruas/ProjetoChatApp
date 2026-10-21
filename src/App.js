@@ -6,12 +6,14 @@ import { Atendimento } from './paginas/Atendimento/Atendimento';
 import { Mensagem } from './paginas/Mensagem/Mensagem';
 import { NovoUsuario } from './paginas/NovoUsuario/NovoUsuario';
 import { EditarUsuario } from './paginas/EditarUsuario/EditarUsuario';
+import { Login } from './paginas/login/login';
 
 function App() {
   return (
    <BrowserRouter>
     <Routes>
         <Route path='/' element={<Home />}/>
+        <Route path='/login' element={<Login />}/>
         <Route path='/usuarios' element={<Usuarios />}/>
         <Route path='/atendimento' element={<Atendimento />}/>
         <Route path='/mensagem/:idAtendimento' element={<Mensagem />}/>

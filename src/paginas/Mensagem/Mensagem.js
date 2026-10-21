@@ -23,8 +23,9 @@ export function Mensagem() {
     const { idAtendimento } = useParams();
     const { state } = useLocation();
     const nomeCliente = state?.nomeCliente ?? "";
+    const nomeAtendente = state?.nomeAtendente || sessionStorage.getItem("nomeAtendente") || "Atendente";
     const tipoRemetente = state?.tipoRemetente ?? "cliente";
-    const remetente = tipoRemetente === "atendente" ? "Atendente" : nomeCliente;
+    const remetente = tipoRemetente === "atendente" ? nomeAtendente : nomeCliente;
     const [texto, setTexto] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [erro, setErro] = useState("");
@@ -144,7 +145,7 @@ export function Mensagem() {
                             <Form.Label>Nome</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder={tipoRemetente === "atendente" ? "Atendente" : "Nome informado no atendimento"}
+                                placeholder={tipoRemetente === "atendente" ? nomeAtendente : "Nome informado no atendimento"}
                                 value={remetente}
                                 readOnly
                                 required
