@@ -2,14 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import UsuarioAPI from "../../service/usuarioAPI";
 import "./login.css";
 
 export function Login() {
     const [nome, setNome] = useState("");
     const [erro, setErro] = useState("");
+    const [validando, setValidando] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const nomeAtendente = nome.trim();
 
@@ -18,8 +20,33 @@ export function Login() {
             return;
         }
 
-        sessionStorage.setItem("nomeAtendente", nomeAtendente);
-        navigate("/usuarios", { state: { nomeAtendente } });
+        setValidando(true);
+        setErro("");
+
+        try {
+            const resposta = await UsuarioAPI.listarAsync(true);
+            const usuarios = Array.isArray(resposta)
+                ? resposta
+                : resposta?.usuarios ?? resposta?.Usuarios ?? resposta?.data ?? [];
+            const usuarioEncontrado = usuarios.find((usuario) => {
+                const nomeUsuario = usuario.nome ?? usuario.Nome ?? "";
+                return nomeUsuario.trim().toLocaleLowerCase() === nomeAtendente.toLocaleLowerCase();
+            });
+
+            if (!usuarioEncontrado) {
+                setErro("Usuário não encontrado ou inativo. Confira o nome e tente novamente.");
+                return;
+            }
+
+            const nomeValidado = usuarioEncontrado.nome ?? usuarioEncontrado.Nome;
+            sessionStorage.setItem("nomeAtendente", nomeValidado);
+            navigate("/usuarios", { state: { nomeAtendente: nomeValidado } });
+        } catch (error) {
+            console.error("Erro ao validar usuário:", error);
+            setErro("Não foi possível validar o usuário. Verifique se a API está disponível e tente novamente.");
+        } finally {
+            setValidando(false);
+        }
     };
 
     return (
@@ -40,7 +67,9 @@ export function Login() {
                         />
                     </Form.Group>
                     {erro && <p role="alert" className="text-danger">{erro}</p>}
-                    <Button type="submit" className="w-100">Continuar</Button>
+                    <Button type="submit" className="w-100" disabled={validando}>
+                        {validando ? "Validando..." : "Continuar"}
+                    </Button>
                 </Form>
             </section>
         </main>
