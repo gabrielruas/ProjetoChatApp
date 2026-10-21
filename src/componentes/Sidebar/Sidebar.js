@@ -1,7 +1,7 @@
 import style from "./Sidebar.module.css"
 import Logo from "../../assets/LogoBranco.png"
 import { SidebarItem } from "../SidebarItem/SidebarItem"
-import { MdGroup } from "react-icons/md";
+import { MdGroup, MdSupportAgent } from "react-icons/md";
 export function Sidebar({children}){
     return(
         <div>
@@ -13,6 +13,7 @@ export function Sidebar({children}){
 
                     <div className={style.sidebar_corpo}>
                         <SidebarItem texto="Usuario" link="/usuarios" logo={<MdGroup />} />
+                        <SidebarItem texto="Gerenciamento" link="/gerenciamento" logo={<MdSupportAgent />} />
                     </div>
                 </div>
   

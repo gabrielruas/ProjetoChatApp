@@ -1,0 +1,33 @@
+.gerenciamento_conteudo {
+    width: 100%;
+    min-height: 100vh;
+    padding: 32px;
+}
+
+.gerenciamento_cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.gerenciamento_cabecalho h2 {
+    margin-bottom: 6px;
+}
+
+.gerenciamento_cabecalho p {
+    margin-bottom: 0;
+    color: #64748b;
+}
+
+@media (max-width: 600px) {
+    .gerenciamento_conteudo {
+        padding: 20px 14px;
+    }
+
+    .gerenciamento_cabecalho {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

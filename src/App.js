@@ -7,6 +7,7 @@ import { Mensagem } from './paginas/Mensagem/Mensagem';
 import { NovoUsuario } from './paginas/NovoUsuario/NovoUsuario';
 import { EditarUsuario } from './paginas/EditarUsuario/EditarUsuario';
 import { Login } from './paginas/login/login';
+import { Gerenciamento } from './paginas/Gerenciamento/Gerenciamento';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path='/' element={<Home />}/>
         <Route path='/login' element={<Login />}/>
         <Route path='/usuarios' element={<Usuarios />}/>
+        <Route path='/gerenciamento' element={<Gerenciamento />}/>
         <Route path='/atendimento' element={<Atendimento />}/>
         <Route path='/mensagem/:idAtendimento' element={<Mensagem />}/>
         <Route path='/usuario/novo' element={<NovoUsuario />}/>
