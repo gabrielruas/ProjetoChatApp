@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../../componentes/Sidebar/Sidebar";
 import { Topbar } from "../../componentes/Topbar/Topbar";
 import MensagemAPI from "../../service/mensagemAPI";
+import AtendimentoAPI from "../../service/atendimentoAPI";
 import "./Mensagem.css";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -32,6 +33,10 @@ export function Mensagem() {
     const [mensagens, setMensagens] = useState([]);
     const [carregandoMensagens, setCarregandoMensagens] = useState(true);
     const [erroLista, setErroLista] = useState("");
+    const [finalizando, setFinalizando] = useState(false);
+    const [erroFinalizar, setErroFinalizar] = useState("");
+    const [atendimentoFinalizado, setAtendimentoFinalizado] = useState(false);
+    const navigate = useNavigate();
     useEffect(() => {
         let ativo = true;
 
@@ -102,12 +107,44 @@ export function Mensagem() {
         }
     };
 
+    const finalizarAtendimento = async () => {
+        if (finalizando || atendimentoFinalizado) return;
+
+        setFinalizando(true);
+        setErroFinalizar("");
+        try {
+            await AtendimentoAPI.finalizarAsync(idAtendimento);
+            setAtendimentoFinalizado(true);
+            navigate("/gerenciamento", { state: { nomeAtendente } });
+        } catch (error) {
+            console.error("Erro ao finalizar atendimento:", error);
+            const resposta = error.response?.data;
+            const detalhe = resposta?.message || resposta?.title ||
+                (resposta ? JSON.stringify(resposta) : error.message);
+            setErroFinalizar(`Não foi possível finalizar o atendimento: ${detalhe}`);
+        } finally {
+            setFinalizando(false);
+        }
+    };
+
     return (
         <div className="conteudo">
             <Sidebar>
                 <Topbar />
                 <div className="pagina_conteudo">
-                    <h3>Mensagem do atendimento #{idAtendimento}</h3>
+                    <div className="d-flex justify-content-between align-items-center gap-3 mb-3">
+                        <h3>Mensagem do atendimento #{idAtendimento}</h3>
+                        {tipoRemetente === "atendente" && (
+                            <Button
+                                variant="success"
+                                onClick={finalizarAtendimento}
+                                disabled={finalizando || atendimentoFinalizado}
+                            >
+                                {finalizando ? "Finalizando..." : "Finalizar atendimento"}
+                            </Button>
+                        )}
+                    </div>
+                    {erroFinalizar && <p role="alert" className="text-danger">{erroFinalizar}</p>}
                     <section aria-label="Mensagens do atendimento" className="mb-4">
                         <h4>Histórico</h4>
                         {carregandoMensagens && <p>Carregando mensagens...</p>}

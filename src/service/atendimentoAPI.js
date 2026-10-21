@@ -35,6 +35,15 @@ const AtendimentoAPI = {
             throw error;
         }
     },
+    async finalizarAsync(idAtendimento) {
+        try {
+            const response = await HTTPClient.put(`/Atendimento/Finalizar/${idAtendimento}`);
+            return response.data;
+        } catch(error) {
+            console.error("Erro ao finalizar atendimento:", error);
+            throw error;
+        }
+    },
     async criarAsync(nomeCliente, emailCliente, celular, assunto) {
         try {
             const atendimentoCriar = {
