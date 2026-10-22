@@ -174,7 +174,7 @@ export function Mensagem() {
                             {status === "reconectando" && "Reconectando às mensagens em tempo real..."}
                             {status === "desconectado" && (
                                 <>
-                                    Atualização automática indisponível. {" "}
+                                    Conexão interrompida. Tentando reconectar automaticamente... {" "}
                                     <Button variant="outline-primary" size="sm" onClick={reconectar}>
                                         Tentar novamente
                                     </Button>

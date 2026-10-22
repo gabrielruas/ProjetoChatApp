@@ -10,6 +10,15 @@ export function useMensagensTempoReal(idAtendimento, atualizarMensagens) {
 
     useEffect(() => {
         let ativo = true;
+        let novaTentativa;
+        const agendarReconexao = () => {
+            if (!ativo || novaTentativa) return;
+            setStatus("desconectado");
+            // O SignalR não repete start() nem reinicia após esgotar a reconexão.
+            novaTentativa = setTimeout(() => {
+                if (ativo) setTentativa((valor) => valor + 1);
+            }, 3000);
+        };
         const conexao = new HubConnectionBuilder()
             .withUrl(`${HTTPClient.defaults.baseURL}/hubs/mensagens`, { withCredentials: true })
             .withAutomaticReconnect()
@@ -27,7 +36,7 @@ export function useMensagensTempoReal(idAtendimento, atualizarMensagens) {
                 if (ativo) setStatus("conectado");
             } catch (erro) {
                 console.error("Falha ao entrar no atendimento:", erro);
-                if (ativo) setStatus("desconectado");
+                agendarReconexao();
             }
         };
 
@@ -39,17 +48,21 @@ export function useMensagensTempoReal(idAtendimento, atualizarMensagens) {
             if (ativo) await entrar();
         });
         conexao.onclose(() => {
-            if (ativo) setStatus("desconectado");
+            agendarReconexao();
         });
 
         const iniciar = async () => {
             try {
                 await conexao.start();
-                if (ativo) await entrar();
+                if (ativo) {
+                    await entrar();
+                } else {
+                    await conexao.stop();
+                }
             } catch (erro) {
                 if (ativo) {
                     console.error("Falha ao conectar às mensagens em tempo real:", erro);
-                    setStatus("desconectado");
+                    agendarReconexao();
                 }
             }
         };
@@ -57,6 +70,7 @@ export function useMensagensTempoReal(idAtendimento, atualizarMensagens) {
 
         return () => {
             ativo = false;
+            clearTimeout(novaTentativa);
             conexao.off("MensagensAtualizadas", receberMensagens);
             // Encerrar a conexão também remove a inscrição no grupo anterior.
             conexao.stop().catch((erro) => console.error("Falha ao encerrar conexão:", erro));

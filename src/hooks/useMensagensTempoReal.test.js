@@ -70,3 +70,48 @@ test("permite tentar novamente quando a conexão inicial falha", async () => {
     expect(conexoes[1].start).toHaveBeenCalled();
     log.mockRestore();
 });
+
+describe("recuperação automática", () => {
+    let log;
+    beforeEach(() => {
+        jest.useFakeTimers();
+        log = jest.spyOn(console, "error").mockImplementation(() => {});
+    });
+    afterEach(() => {
+        jest.useRealTimers();
+        log.mockRestore();
+    });
+
+    test("recupera uma falha inicial e recebe mensagens sem ação do usuário", async () => {
+        const atualizar = jest.fn();
+        const criarBuilder = HubConnectionBuilder.getMockImplementation();
+        HubConnectionBuilder.mockImplementationOnce(() => {
+            const builder = criarBuilder();
+            conexoes[0].start.mockRejectedValueOnce(new Error("API indisponível"));
+            return builder;
+        });
+        const { result, unmount } = renderHook(() => useMensagensTempoReal("6", atualizar));
+        await act(async () => {});
+        expect(result.current.status).toBe("desconectado");
+        await act(async () => { jest.advanceTimersByTime(3000); });
+        expect(conexoes[0].stop).toHaveBeenCalled();
+        expect(result.current.status).toBe("conectado");
+        expect(conexoes[1].invoke).toHaveBeenCalledWith("EntrarAtendimento", 6);
+        act(() => conexoes[1].on.mock.calls[0][1](6, [{ texto: "Nova mensagem" }]));
+        expect(atualizar).toHaveBeenCalledWith([{ texto: "Nova mensagem" }]);
+        unmount();
+    });
+
+    test("reinicia após esgotar a reconexão e cancela tentativas ao sair", async () => {
+        const { result, unmount } = renderHook(() => useMensagensTempoReal("6", jest.fn()));
+        await act(async () => {});
+        act(() => conexoes[0].onclose.mock.calls[0][0]());
+        await act(async () => { jest.advanceTimersByTime(3000); });
+        expect(result.current.status).toBe("conectado");
+        expect(conexoes[1].invoke).toHaveBeenCalledWith("EntrarAtendimento", 6);
+        act(() => conexoes[1].onclose.mock.calls[0][0]());
+        unmount();
+        await act(async () => { jest.advanceTimersByTime(3000); });
+        expect(conexoes).toHaveLength(2);
+    });
+});
