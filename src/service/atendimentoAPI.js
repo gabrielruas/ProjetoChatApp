@@ -35,6 +35,18 @@ const AtendimentoAPI = {
             throw error;
         }
     },
+    async iniciarAsync(idAtendimento, funcionarioId) {
+        try {
+            const response = await HTTPClient.put(
+                `/Atendimento/Iniciar/${idAtendimento}`,
+                { funcionarioID: funcionarioId }
+            );
+            return response.data;
+        } catch(error) {
+            console.error("Erro ao iniciar atendimento:", error);
+            throw error;
+        }
+    },
     async finalizarAsync(idAtendimento) {
         try {
             const response = await HTTPClient.put(`/Atendimento/Finalizar/${idAtendimento}`);

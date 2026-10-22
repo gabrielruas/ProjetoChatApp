@@ -13,6 +13,8 @@ export function Gerenciamento() {
     const { state } = useLocation();
     const navigate = useNavigate();
     const nomeAtendente = state?.nomeAtendente || sessionStorage.getItem("nomeAtendente") || "Atendente";
+    const funcionarioId = Number(state?.funcionarioId ?? sessionStorage.getItem("funcionarioId"));
+    const [iniciandoId, setIniciandoId] = useState(null);
 
     useEffect(() => {
         let ativo = true;
@@ -37,7 +39,7 @@ export function Gerenciamento() {
         return () => { ativo = false; };
     }, []);
 
-    const iniciarAtendimento = (atendimento) => {
+    const iniciarAtendimento = async (atendimento) => {
         const idAtendimento = atendimento.idAtendimento ?? atendimento.IdAtendimento ?? atendimento.id ?? atendimento.Id;
         const nomeCliente = atendimento.nomeCliente ?? atendimento.NomeCliente ?? atendimento.nome ?? atendimento.Nome ?? "";
 
@@ -46,9 +48,27 @@ export function Gerenciamento() {
             return;
         }
 
-        navigate(`/mensagem/${idAtendimento}`, {
-            state: { nomeCliente, nomeAtendente, tipoRemetente: "atendente" }
-        });
+        if (!Number.isInteger(funcionarioId) || funcionarioId <= 0) {
+            setErro("ID do funcionário não encontrado. Saia e entre novamente.");
+            return;
+        }
+
+        setIniciandoId(idAtendimento);
+        setErro("");
+        try {
+            await AtendimentoAPI.iniciarAsync(idAtendimento, funcionarioId);
+            navigate(`/mensagem/${idAtendimento}`, {
+                state: { nomeCliente, nomeAtendente, funcionarioId, tipoRemetente: "atendente" }
+            });
+        } catch (error) {
+            console.error("Erro ao iniciar atendimento:", error);
+            const resposta = error.response?.data;
+            const detalhe = resposta?.message || resposta?.title ||
+                (resposta ? JSON.stringify(resposta) : error.message);
+            setErro(`Não foi possível iniciar o atendimento: ${detalhe}`);
+        } finally {
+            setIniciandoId(null);
+        }
     };
 
     return (
@@ -93,10 +113,10 @@ export function Gerenciamento() {
                                         <td>
                                             <Button
                                                 variant="primary"
-                                                disabled={id == null}
+                                                disabled={id == null || iniciandoId != null}
                                                 onClick={() => iniciarAtendimento(atendimento)}
                                             >
-                                                Começar atendimento
+                                                {iniciandoId === id ? "Iniciando..." : "Começar atendimento"}
                                             </Button>
                                         </td>
                                     </tr>

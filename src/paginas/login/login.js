@@ -39,8 +39,19 @@ export function Login() {
             }
 
             const nomeValidado = usuarioEncontrado.nome ?? usuarioEncontrado.Nome;
+            const funcionarioId = usuarioEncontrado.id ?? usuarioEncontrado.Id ??
+                usuarioEncontrado.funcionarioID ?? usuarioEncontrado.FuncionarioID ??
+                usuarioEncontrado.funcionarioId ?? usuarioEncontrado.FuncionarioId ??
+                usuarioEncontrado.usuarioId ?? usuarioEncontrado.UsuarioId;
+
+            if (funcionarioId == null) {
+                setErro("O usuário foi encontrado, mas a API não retornou seu ID de funcionário.");
+                return;
+            }
+
             sessionStorage.setItem("nomeAtendente", nomeValidado);
-            navigate("/usuarios", { state: { nomeAtendente: nomeValidado } });
+            sessionStorage.setItem("funcionarioId", String(funcionarioId));
+            navigate("/usuarios", { state: { nomeAtendente: nomeValidado, funcionarioId } });
         } catch (error) {
             console.error("Erro ao validar usuário:", error);
             setErro("Não foi possível validar o usuário. Verifique se a API está disponível e tente novamente.");
