@@ -50,7 +50,7 @@ export function EditarUsuario(){
 
         buscarDadosUsuario();
         buscarTiposUsuarios();
-    },[]);
+    },[id]);
 
     const isFormValid = () => {
         return nome && email && tipoUsuario;

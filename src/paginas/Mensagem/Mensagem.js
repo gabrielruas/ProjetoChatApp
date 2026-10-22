@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../../componentes/Sidebar/Sidebar";
 import { Topbar } from "../../componentes/Topbar/Topbar";
 import MensagemAPI from "../../service/mensagemAPI";
 import AtendimentoAPI from "../../service/atendimentoAPI";
+import { useMensagensTempoReal } from "../../hooks/useMensagensTempoReal";
 import "./Mensagem.css";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -37,8 +38,20 @@ export function Mensagem() {
     const [erroFinalizar, setErroFinalizar] = useState("");
     const [atendimentoFinalizado, setAtendimentoFinalizado] = useState(false);
     const navigate = useNavigate();
+    const revisaoMensagens = useRef(0);
+    const atendimentoAtual = useRef(idAtendimento);
+    atendimentoAtual.current = idAtendimento;
+    const { status, reconectar } = useMensagensTempoReal(idAtendimento, (resposta) => {
+        revisaoMensagens.current += 1;
+        const lista = obterListaMensagens(resposta);
+        setMensagens(Array.isArray(lista) ? ordenarPorData(lista) : []);
+        setErroLista("");
+        setCarregandoMensagens(false);
+    });
     useEffect(() => {
         let ativo = true;
+        const revisao = revisaoMensagens.current;
+        setMensagens([]);
 
         const carregarMensagens = async () => {
             setCarregandoMensagens(true);
@@ -48,12 +61,12 @@ export function Mensagem() {
                 const resposta = await MensagemAPI.listarPorAtendimentoAsync(idAtendimento);
                 const lista = obterListaMensagens(resposta);
 
-                if (ativo) {
+                if (ativo && revisao === revisaoMensagens.current) {
                     setMensagens(Array.isArray(lista) ? ordenarPorData(lista) : []);
                 }
             } catch (error) {
                 console.error("Erro ao carregar mensagens:", error);
-                if (ativo) {
+                if (ativo && revisao === revisaoMensagens.current) {
                     setErroLista("Não foi possível carregar as mensagens deste atendimento.");
                 }
             } finally {
@@ -81,15 +94,23 @@ export function Mensagem() {
 
         try {
             await MensagemAPI.criarAsync(idAtendimento, remetente.trim(), texto.trim());
+            if (atendimentoAtual.current !== idAtendimento) return;
             setTexto("");
+            // O hub atualiza o histórico conectado. O GET mantém o envio útil offline.
+            if (status === "conectado") return;
+            const revisao = revisaoMensagens.current;
             try {
                 const resposta = await MensagemAPI.listarPorAtendimentoAsync(idAtendimento);
                 const lista = obterListaMensagens(resposta);
-                setMensagens(Array.isArray(lista) ? ordenarPorData(lista) : []);
-                setErroLista("");
+                if (atendimentoAtual.current === idAtendimento && revisao === revisaoMensagens.current) {
+                    setMensagens(Array.isArray(lista) ? ordenarPorData(lista) : []);
+                    setErroLista("");
+                }
             } catch (error) {
                 console.error("Mensagem enviada, mas não foi possível atualizar o histórico:", error);
-                setErroLista("A mensagem foi enviada, mas não foi possível atualizar o histórico.");
+                if (atendimentoAtual.current === idAtendimento && revisao === revisaoMensagens.current) {
+                    setErroLista("A mensagem foi enviada, mas não foi possível atualizar o histórico.");
+                }
             }
         } catch (error) {
             console.error("Erro ao criar mensagem:", error);
@@ -147,6 +168,19 @@ export function Mensagem() {
                     {erroFinalizar && <p role="alert" className="text-danger">{erroFinalizar}</p>}
                     <section aria-label="Mensagens do atendimento" className="mb-4">
                         <h4>Histórico</h4>
+                        <div role="status" className="mb-2">
+                            {status === "conectado" && "Mensagens em tempo real conectadas."}
+                            {status === "conectando" && "Conectando às mensagens em tempo real..."}
+                            {status === "reconectando" && "Reconectando às mensagens em tempo real..."}
+                            {status === "desconectado" && (
+                                <>
+                                    Atualização automática indisponível. {" "}
+                                    <Button variant="outline-primary" size="sm" onClick={reconectar}>
+                                        Tentar novamente
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                         {carregandoMensagens && <p>Carregando mensagens...</p>}
                         {erroLista && <p role="alert" className="text-danger">{erroLista}</p>}
                         {!carregandoMensagens && !erroLista && mensagens.length === 0 && (
